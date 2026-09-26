@@ -1,0 +1,37 @@
+target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Node / web
+node_modules/
+web/dist/
+e2e/node_modules/
+e2e/cypress/videos/
+e2e/cypress/screenshots/
+
+# Terraform
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+infra/**/.terraform.lock.hcl
+
+# Logs
+*.log
+
+# Drill answers (gitignored per CLAUDE.md)
+.drills/

@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: search-api
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+
+elasticsearch:
+  uris: http://localhost:9200
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  structured:
+    format:
+      console: ecs
