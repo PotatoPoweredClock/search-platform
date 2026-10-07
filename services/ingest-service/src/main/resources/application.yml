@@ -5,9 +5,13 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/search_platform
+    url: jdbc:postgresql://localhost:5432/search_platform?reWriteBatchedInserts=true
     username: search_platform
     password: search_platform
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate # Flyway owns the schema, Hibernate only checks it matches the entities
   flyway:
     enabled: true
     locations: classpath:db/migration

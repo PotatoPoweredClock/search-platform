@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class PackageEventChangeContent implements ChangeSourceContent {
+public class NpmPackageEventChangeContent implements ChangeSourceContent {
     private boolean deleted = false;
     private String id;
     private String name;

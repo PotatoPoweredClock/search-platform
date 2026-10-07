@@ -1,10 +1,11 @@
 package com.searchplatform.connector.npm;
 
 import com.searchplatform.connector.Connector;
+import com.searchplatform.connector.ConnectorClientService;
 import com.searchplatform.connector.npm.response.NpmPackageChangePageResponse;
 import com.searchplatform.connector.npm.response.NpmPackageChangeResponse;
 import com.searchplatform.connector.npm.response.NpmPackageFullResponse;
-import com.searchplatform.model.connector.Cursor;
+import com.searchplatform.model.connector.ConnectorCursor;
 import com.searchplatform.model.event.change.ChangeEvent;
 import com.searchplatform.model.event.change.ChangeEventPage;
 import org.apache.hc.core5.net.URIBuilder;
@@ -17,8 +18,7 @@ import org.springframework.web.client.RestClientException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class NpmPackageConnector implements Connector {
     private static final String CHANGE_URL = "https://replicate.npmjs.com/_changes";
@@ -36,7 +36,8 @@ public class NpmPackageConnector implements Connector {
     }
 
     @Override
-    public ChangeEventPage getChangePage(Cursor cursor, int limit) {
+    public ChangeEventPage getChangePage(ConnectorCursor cursor, int limit) {
+        //TODO: dedupe updates
         if (cursor == null
                 || cursor.cursorValue() == null
                 || cursor.cursorValue().isEmpty()
@@ -44,28 +45,37 @@ public class NpmPackageConnector implements Connector {
             throw new IllegalArgumentException("Invalid cursor or limit provided.");
         }
 
-        //we will intentionally not catch exceptions here
-        //let it bubble up the caller to deal with.
-        //the idea here is that most exceptions will be transient so the calling ingest loop
-        //is the better place to deal with it
         NpmPackageChangePageResponse response = connectorClientService.makeRequest(getPackageChangeSinceURI(cursor.cursorValue(), limit), NpmPackageChangePageResponse.class);
 
         List<ChangeEvent> packageChangeList = new ArrayList<>();
+        Map<String,NpmPackageChangeResponse> dedupedPackages = new HashMap<>();
+
+        //dedupe giving priority to deleted events to avoid making repeated calls
         if (response.getResults() != null) {
             for (NpmPackageChangeResponse packageChange : response.getResults()) {
-                PackageEventChangeContent packageContent = getPackageInfo(packageChange.getId(), packageChange.isDeleted());
-                if(packageContent!= null) {
-                    ChangeEvent event = new ChangeEvent();
-                    event.setContent(packageContent);
-                    packageChangeList.add(event);
-                }
+                dedupedPackages.merge(packageChange.getId(),packageChange,(current,next)->next.isDeleted()?next:current);
             }
         }
-        return new ChangeEventPage(new Cursor(response.getLastSequence()), packageChangeList);
+
+        for (NpmPackageChangeResponse packageChange : dedupedPackages.values()) {
+            NpmPackageEventChangeContent packageContent = getPackageInfo(packageChange.getId(), packageChange.isDeleted());
+            if (packageContent != null) {
+                ChangeEvent event = new ChangeEvent();
+                event.setContent(packageContent);
+                packageChangeList.add(event);
+            }
+        }
+        return new ChangeEventPage(new ConnectorCursor(response.getLastSequence()), packageChangeList);
     }
 
-    private PackageEventChangeContent getPackageInfo(String packageId, boolean deleted) {
-        PackageEventChangeContent result = new PackageEventChangeContent();
+    private boolean isUnpublished(NpmPackageFullResponse response) {
+        boolean hasUnpublishedTime = response.getTime() != null && response.getTime().getUnpublished() != null;
+        boolean hasDistTags = response.getDistTags() != null && !response.getDistTags().isEmpty();
+        return hasUnpublishedTime && !hasDistTags;
+    }
+
+    private NpmPackageEventChangeContent getPackageInfo(String packageId, boolean deleted) {
+        NpmPackageEventChangeContent result = new NpmPackageEventChangeContent();
         result.setId(packageId);
 
         //if the package event has the deleted field we want to return an event noting it was deleted
@@ -80,18 +90,25 @@ public class NpmPackageConnector implements Connector {
             response = connectorClientService.makeRequest(getPackageMetadataURI(packageId), NpmPackageFullResponse.class);
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 404) {
-                LOG.debug("package not found for id:{} treating as deleted",packageId);
+                LOG.debug("package not found for id:{} treating as deleted", packageId);
                 result.setDeleted(true);
                 return result;
             }
             throw e;
         } catch (RestClientException e) {
-            if(e.getCause() instanceof HttpMessageNotReadableException) {
-                LOG.warn("Malformed package found for id{} skipping.",packageId, e);
+            if (e.getCause() instanceof HttpMessageNotReadableException) {
+                LOG.warn("Malformed package found for id{} skipping.", packageId, e);
                 return null;
             } else {
                 throw e;
             }
+        }
+
+        // An unpublished package still returns a stub document: time.unpublished is set and there are no dist-tags.
+        // Requiring both keeps a republished package live even if a stale unpublished key were left behind.
+        if (isUnpublished(response)) {
+            result.setDeleted(true);
+            return result;
         }
 
         //map our internal response object to the change data we will report.
@@ -101,9 +118,11 @@ public class NpmPackageConnector implements Connector {
         result.setKeywords(response.getKeywords());
         result.setLicense(response.getLicense());
         if (response.getTime() != null) {
-            result.setDateCreated(toDate(response.getTime().get("created")));
-            result.setDateModified(toDate(response.getTime().get("modified")));
-            result.setDateLatestVersionModified(toDate(response.getTime().get(result.getLatestVersion())));
+            result.setDateCreated(toDate(response.getTime().getCreated()));
+            result.setDateModified(toDate(response.getTime().getModified()));
+            if(response.getTime().getVersionTimes() != null) {
+                result.setDateLatestVersionModified(toDate(response.getTime().getVersionTime(result.getLatestVersion())));
+            }
         }
         return result;
     }

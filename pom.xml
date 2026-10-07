@@ -44,6 +44,21 @@
   </dependencies>
 
   <build>
+    <plugins>
+      <!-- Unit tests (*Test) run in Surefire during `test`; integration tests (*IT) run in Failsafe during `verify`. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
     <pluginManagement>
       <plugins>
         <plugin>

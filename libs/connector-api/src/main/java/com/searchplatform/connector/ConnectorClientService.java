@@ -1,4 +1,4 @@
-package com.searchplatform.connector.npm;
+package com.searchplatform.connector;
 
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;

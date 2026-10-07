@@ -20,6 +20,6 @@ public class NpmPackageFullResponse {
     private List<String> keywords;
     private String description;
     private String license;
-    private Map<String,String> time;
+    private NpmPackageResponseTime time;
 }
 

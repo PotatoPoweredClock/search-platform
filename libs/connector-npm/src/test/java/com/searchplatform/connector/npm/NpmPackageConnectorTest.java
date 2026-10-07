@@ -1,10 +1,11 @@
 package com.searchplatform.connector.npm;
 
-
+import com.searchplatform.connector.ConnectorClientService;
 import com.searchplatform.connector.npm.response.NpmPackageChangePageResponse;
 import com.searchplatform.connector.npm.response.NpmPackageChangeResponse;
 import com.searchplatform.connector.npm.response.NpmPackageFullResponse;
-import com.searchplatform.model.connector.Cursor;
+import com.searchplatform.connector.npm.response.NpmPackageResponseTime;
+import com.searchplatform.model.connector.ConnectorCursor;
 import com.searchplatform.model.event.change.ChangeEventPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,8 @@ import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -63,12 +66,42 @@ public class NpmPackageConnectorTest {
         full.setKeywords(List.of("keyword1", "keyword2"));
         full.setDescription("Description here.");
         full.setLicense("AGPL-3.0-or-later");
-        full.setTime(Map.of(
-                "created", "2026-08-01T19:20:42.380Z",
-                "modified", "2026-09-30T01:56:34.655Z",
+        NpmPackageResponseTime time = new NpmPackageResponseTime();
+        time.setCreated("2026-08-01T19:20:42.380Z");
+        time.setModified("2026-09-30T01:56:34.655Z");
+        time.setVersionTimes(Map.of(
                 "2.0.0", "2026-08-01T19:20:42.764Z",
                 "0.21.0", "2026-09-30T01:56:34.318Z"));
+        full.setTime(time);
         return full;
+    }
+
+    // Shape of an unpublished package: no dist-tags or versions, and an unpublished object under time.
+    private static NpmPackageFullResponse packageUnpublishedFull() {
+        NpmPackageFullResponse full = new NpmPackageFullResponse();
+        full.setId("package4");
+        full.setName("package4Name");
+        NpmPackageResponseTime time = new NpmPackageResponseTime();
+        time.setCreated("2026-07-24T23:25:41.763Z");
+        time.setModified("2026-09-30T05:34:45.509Z");
+        time.setVersionTimes(Map.of("1.0.0", "2026-07-24T23:25:42.122Z"));
+        NpmPackageResponseTime.Unpublished unpublished = new NpmPackageResponseTime.Unpublished();
+        unpublished.setTime("2026-09-30T05:34:42.397Z");
+        unpublished.setVersions(List.of("1.0.0"));
+        time.setUnpublished(unpublished);
+        full.setTime(time);
+        return full;
+    }
+
+    private static NpmPackageChangePageResponse singleChangePage(String id) {
+        NpmPackageChangeResponse change = new NpmPackageChangeResponse();
+        change.setId(id);
+        change.setSequence("133509741");
+
+        NpmPackageChangePageResponse page = new NpmPackageChangePageResponse();
+        page.setResults(List.of(change));
+        page.setLastSequence("133509749");
+        return page;
     }
 
     @Mock
@@ -104,7 +137,7 @@ public class NpmPackageConnectorTest {
                         eq(NpmPackageFullResponse.class));
 
 
-        ChangeEventPage results = connector.getChangePage(new Cursor("1"), 4);
+        ChangeEventPage results = connector.getChangePage(new ConnectorCursor("1"), 4);
 
         //one call for page
         verify(mockService, times(1)).makeRequest(
@@ -120,9 +153,15 @@ public class NpmPackageConnectorTest {
         assertEquals("133509749", results.cursor().cursorValue());
         assertEquals(3, results.events().size());
 
-        PackageEventChangeContent packageOne = (PackageEventChangeContent) results.events().get(0).getContent();
-        PackageEventChangeContent packageTwo = (PackageEventChangeContent) results.events().get(1).getContent();
-        PackageEventChangeContent packageThree = (PackageEventChangeContent) results.events().get(2).getContent();
+        // events come back deduped with no guaranteed order, so look them up by id
+        Map<String, NpmPackageEventChangeContent> eventsById = results.events().stream()
+                .map(event -> (NpmPackageEventChangeContent) event.getContent())
+                .collect(Collectors.toMap(NpmPackageEventChangeContent::getId, Function.identity()));
+        assertThat(eventsById).containsOnlyKeys("package1", "package2", "package3");
+
+        NpmPackageEventChangeContent packageOne = eventsById.get("package1");
+        NpmPackageEventChangeContent packageTwo = eventsById.get("package2");
+        NpmPackageEventChangeContent packageThree = eventsById.get("package3");
 
         //validate package one
         assertThat(packageOne.getId()).isEqualTo("package1");
@@ -154,7 +193,7 @@ public class NpmPackageConnectorTest {
                         argThat(uri -> uri.toString().contains("/_changes")),
                         eq(NpmPackageChangePageResponse.class));
 
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor("1"), 4))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor("1"), 4))
                 .isInstanceOf(HttpClientErrorException.class);
     }
 
@@ -181,7 +220,7 @@ public class NpmPackageConnectorTest {
                         eq(NpmPackageFullResponse.class));
 
 
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor("1"), 4))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor("1"), 4))
                 .isInstanceOf(HttpClientErrorException.class);
 
         //one call for page
@@ -204,7 +243,7 @@ public class NpmPackageConnectorTest {
                         argThat(uri -> uri.toString().contains("/package3")),
                         eq(NpmPackageFullResponse.class));
 
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor("1"), 4))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor("1"), 4))
                 .isInstanceOf(HttpServerErrorException.class);
     }
 
@@ -218,7 +257,7 @@ public class NpmPackageConnectorTest {
                         argThat(uri -> uri.toString().contains("/package3")),
                         eq(NpmPackageFullResponse.class));
 
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor("1"), 4))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor("1"), 4))
                 .isInstanceOf(ResourceAccessException.class);
     }
 
@@ -245,13 +284,65 @@ public class NpmPackageConnectorTest {
                         argThat(uri -> uri.toString().contains("/package3")),
                         eq(NpmPackageFullResponse.class));
 
-        ChangeEventPage results = connector.getChangePage(new Cursor("1"), 4);
+        ChangeEventPage results = connector.getChangePage(new ConnectorCursor("1"), 4);
 
         // package1 is dropped, the cursor still advances past it
         assertEquals("133509749", results.cursor().cursorValue());
         assertEquals(2, results.events().size());
-        assertThat(((PackageEventChangeContent) results.events().get(0).getContent()).getId()).isEqualTo("package2");
-        assertThat(((PackageEventChangeContent) results.events().get(1).getContent()).getId()).isEqualTo("package3");
+        assertThat(results.events())
+                .extracting(event -> ((NpmPackageEventChangeContent) event.getContent()).getId())
+                .containsExactlyInAnyOrder("package2", "package3");
+    }
+
+    @Test
+    public void unpublishedPackageFoundOnFetchIsMarkedDeleted() {
+        // the feed event is not flagged as deleted, only the fetched package shows it was unpublished
+        doReturn(singleChangePage("package4"))
+                .when(mockService)
+                .makeRequest(
+                        argThat(uri -> uri.toString().contains("/_changes")),
+                        eq(NpmPackageChangePageResponse.class));
+
+        doReturn(packageUnpublishedFull())
+                .when(mockService)
+                .makeRequest(
+                        argThat(uri -> uri.toString().contains("/package4")),
+                        eq(NpmPackageFullResponse.class));
+
+        ChangeEventPage results = connector.getChangePage(new ConnectorCursor("1"), 4);
+
+        assertEquals(1, results.events().size());
+        NpmPackageEventChangeContent content = (NpmPackageEventChangeContent) results.events().get(0).getContent();
+        assertThat(content.getId()).isEqualTo("package4");
+        assertTrue(content.isDeleted());
+        assertNull(content.getName());
+        assertNull(content.getLatestVersion());
+    }
+
+    @Test
+    public void packageWithUnpublishedTimeButDistTagsStaysLive() {
+        doReturn(singleChangePage("package4"))
+                .when(mockService)
+                .makeRequest(
+                        argThat(uri -> uri.toString().contains("/_changes")),
+                        eq(NpmPackageChangePageResponse.class));
+
+        // a republished package that still carries an old unpublished key
+        NpmPackageFullResponse republished = packageUnpublishedFull();
+        republished.setDistTags(Map.of("latest", "2.0.0"));
+        doReturn(republished)
+                .when(mockService)
+                .makeRequest(
+                        argThat(uri -> uri.toString().contains("/package4")),
+                        eq(NpmPackageFullResponse.class));
+
+        ChangeEventPage results = connector.getChangePage(new ConnectorCursor("1"), 4);
+
+        assertEquals(1, results.events().size());
+        NpmPackageEventChangeContent content = (NpmPackageEventChangeContent) results.events().get(0).getContent();
+        assertFalse(content.isDeleted());
+        assertThat(content.getName()).isEqualTo("package4Name");
+        assertThat(content.getLatestVersion()).isEqualTo("2.0.0");
     }
 
     @Test
@@ -264,7 +355,7 @@ public class NpmPackageConnectorTest {
                         argThat(uri -> uri.toString().contains("/package3")),
                         eq(NpmPackageFullResponse.class));
 
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor("1"), 4))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor("1"), 4))
                 .isInstanceOf(RestClientException.class);
     }
 
@@ -286,11 +377,11 @@ public class NpmPackageConnectorTest {
     public void testGetChangePageArgumentValidationFailures(){
         assertThatThrownBy(() -> connector.getChangePage(null, 0))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor(null), 0))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor(null), 0))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor(""), 0))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor(""), 0))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> connector.getChangePage(new Cursor("1"), 0))
+        assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor("1"), 0))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }
