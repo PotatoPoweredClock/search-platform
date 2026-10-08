@@ -51,12 +51,12 @@ public class NpmPackageConnector implements Connector {
         NpmPackageChangePageResponse response = connectorClientService.makeRequest(getPackageChangeSinceURI(cursor.cursorValue(), limit), NpmPackageChangePageResponse.class);
 
         List<ChangeEvent> packageChangeList = new ArrayList<>();
-        Map<String,NpmPackageChangeResponse> dedupedPackages = new HashMap<>();
+        Map<String, NpmPackageChangeResponse> dedupedPackages = new HashMap<>();
 
         //dedupe giving priority to deleted events to avoid making repeated calls
         if (response.getResults() != null) {
             for (NpmPackageChangeResponse packageChange : response.getResults()) {
-                dedupedPackages.merge(packageChange.getId(),packageChange,(current,next)->next.isDeleted()?next:current);
+                dedupedPackages.merge(packageChange.getId(), packageChange, (current, next) -> next.isDeleted() ? next : current);
             }
         }
 
@@ -123,7 +123,7 @@ public class NpmPackageConnector implements Connector {
         if (response.getTime() != null) {
             result.setDateCreated(toDate(response.getTime().getCreated()));
             result.setDateModified(toDate(response.getTime().getModified()));
-            if(response.getTime().getVersionTimes() != null) {
+            if (response.getTime().getVersionTimes() != null) {
                 result.setDateLatestVersionModified(toDate(response.getTime().getVersionTime(result.getLatestVersion())));
             }
         }

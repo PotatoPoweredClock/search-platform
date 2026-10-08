@@ -89,9 +89,9 @@ public class NpmIngestProcess {
             List<NpmPackage> packagesToUpdate = new ArrayList<>();
             List<String> packageIdsToMarkDelete = new ArrayList<>();
 
-            for(ChangeEvent changeEvent: changes.events()) {
+            for (ChangeEvent changeEvent : changes.events()) {
                 NpmPackageEventChangeContent content = (NpmPackageEventChangeContent) changeEvent.getContent();
-                if(content.isDeleted()){
+                if (content.isDeleted()) {
                     packageIdsToMarkDelete.add(content.getId());
                 } else {
                     packagesToUpdate.add(mapToPackageDomainObject(content));
@@ -112,12 +112,12 @@ public class NpmIngestProcess {
             LOG.info("SUCCESS SYNCING PACKAGES");
         } catch (Exception e) { //TODO: expand for specific exceptions and better handling
             increaseDelayMultiplier();
-            LOG.error("Ingest process failed. waiting for {} ms before retrying",DEFAULT_DELAY_MILS * delayMultiplier,e);
+            LOG.error("Ingest process failed. waiting for {} ms before retrying", DEFAULT_DELAY_MILS * delayMultiplier, e);
         }
         this.schedule(Duration.ofMillis(DEFAULT_DELAY_MILS * delayMultiplier));
     }
 
-    private void increaseDelayMultiplier(){
+    private void increaseDelayMultiplier() {
         delayMultiplier = Math.min(delayMultiplier * 2, MAX_DELAY_MULTIPLIER);
     }
 

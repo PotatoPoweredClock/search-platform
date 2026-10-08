@@ -17,7 +17,7 @@ public class CursorService {
 
     public Cursor updateOrCreateCursor(String source, String cursorValue) {
         Cursor cursor = cursorRepository.findFirstBySource(source);
-        if(cursor == null) {
+        if (cursor == null) {
             cursor = new Cursor();
             cursor.setSource(source);
         }

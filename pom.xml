@@ -2,80 +2,80 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.1.1</version>
-    <relativePath/>
-  </parent>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
 
-  <groupId>com.searchplatform</groupId>
-  <artifactId>search-platform</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
+    <groupId>com.searchplatform</groupId>
+    <artifactId>search-platform</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
-  <name>search-platform</name>
-  <description>Package search platform: npm change feed into Postgres, through Kafka into Elasticsearch</description>
+    <name>search-platform</name>
+    <description>Package search platform: npm change feed into Postgres, through Kafka into Elasticsearch</description>
 
-  <properties>
-    <java.version>25</java.version>
-    <maven.compiler.release>25</maven.compiler.release>
-    <!-- Spring Boot 4.1.1 pins 11.0.24, which has CVEs fixed in 11.0.26 (2026-09-23). Override until the parent BOM catches up. -->
-    <tomcat.version>11.0.26</tomcat.version>
-  </properties>
+    <properties>
+        <java.version>25</java.version>
+        <maven.compiler.release>25</maven.compiler.release>
+        <!-- Spring Boot 4.1.1 pins 11.0.24, which has CVEs fixed in 11.0.26 (2026-09-23). Override until the parent BOM catches up. -->
+        <tomcat.version>11.0.26</tomcat.version>
+    </properties>
 
-  <modules>
-    <module>libs/core-model</module>
-    <module>libs/connector-api</module>
-    <module>libs/connector-npm</module>
-    <module>services/ingest-service</module>
-    <module>services/indexer-service</module>
-    <module>services/search-api</module>
-  </modules>
+    <modules>
+        <module>libs/core-model</module>
+        <module>libs/connector-api</module>
+        <module>libs/connector-npm</module>
+        <module>services/ingest-service</module>
+        <module>services/indexer-service</module>
+        <module>services/search-api</module>
+    </modules>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <optional>true</optional>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <plugins>
-      <!-- Unit tests (*Test) run in Surefire during `test`; integration tests (*IT) run in Failsafe during `verify`. -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <!-- JDK 23+ no longer runs annotation processors found on the classpath, so Lombok must be listed here. -->
-            <annotationProcessorPaths>
-              <path>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-              </path>
-            </annotationProcessorPaths>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-  </build>
+    <build>
+        <plugins>
+            <!-- Unit tests (*Test) run in Surefire during `test`; integration tests (*IT) run in Failsafe during `verify`. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <!-- JDK 23+ no longer runs annotation processors found on the classpath, so Lombok must be listed here. -->
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

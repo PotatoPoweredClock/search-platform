@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U search_platform"]
+      test: [ "CMD-SHELL", "pg_isready -U search_platform" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -43,7 +43,7 @@ services:
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -51,7 +51,7 @@ services:
   # Grafana otel-lgtm (Prometheus, Loki, Tempo): docker compose --profile obs up -d
   otel-lgtm:
     image: grafana/otel-lgtm:latest
-    profiles: ["obs"]
+    profiles: [ "obs" ]
     ports:
       - "3000:3000"   # Grafana
       - "4317:4317"   # OTLP gRPC

@@ -14,16 +14,16 @@ public class NpmPackageService {
     private final NpmPackageRepository repository;
 
 
-    public List<NpmPackage> syncUpdatedDeletedPackagesFromIngest(List<NpmPackage> packages){
-        if(packages == null || packages.isEmpty()) return new ArrayList<>();
+    public List<NpmPackage> syncUpdatedDeletedPackagesFromIngest(List<NpmPackage> packages) {
+        if (packages == null || packages.isEmpty()) return new ArrayList<>();
 
         repository.upsertAll(packages);
 
         return repository.findAllById(packages.stream().map(NpmPackage::getPackageId).toList());
     }
 
-    public int syncDeletedPackagesFromIngest(List<String> packages){
-        if(packages == null || packages.isEmpty()) return 0;
+    public int syncDeletedPackagesFromIngest(List<String> packages) {
+        if (packages == null || packages.isEmpty()) return 0;
 
         return repository.markDeleted(packages);
     }

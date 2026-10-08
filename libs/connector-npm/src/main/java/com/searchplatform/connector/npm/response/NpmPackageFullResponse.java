@@ -16,7 +16,7 @@ public class NpmPackageFullResponse {
     private String id;
     private String name;
     @JsonProperty("dist-tags")
-    private Map<String,String> distTags;
+    private Map<String, String> distTags;
     private List<String> keywords;
     private String description;
     private String license;

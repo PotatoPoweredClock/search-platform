@@ -374,7 +374,7 @@ public class NpmPackageConnectorTest {
     }
 
     @Test
-    public void testGetChangePageArgumentValidationFailures(){
+    public void testGetChangePageArgumentValidationFailures() {
         assertThatThrownBy(() -> connector.getChangePage(null, 0))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> connector.getChangePage(new ConnectorCursor(null), 0))
