@@ -35,3 +35,6 @@ infra/**/.terraform.lock.hcl
 
 # Drill answers (gitignored per CLAUDE.md)
 .drills/
+
+# Personal milestone checklists
+*checklist*.md

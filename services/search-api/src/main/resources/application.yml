@@ -1,4 +1,6 @@
 spring:
+  elasticsearch:
+    uris: http://localhost:9200
   application:
     name: search-api
   threads:
@@ -9,7 +11,7 @@ server:
   port: 8080
 
 elasticsearch:
-  uris: http://localhost:9200
+  index: npm-packages
 
 management:
   endpoints:

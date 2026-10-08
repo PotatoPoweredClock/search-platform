@@ -2,31 +2,76 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.searchplatform</groupId>
-    <artifactId>search-platform</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
-  </parent>
+    <parent>
+        <groupId>com.searchplatform</groupId>
+        <artifactId>search-platform</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
 
-  <artifactId>connector-npm</artifactId>
-  <packaging>jar</packaging>
+    <artifactId>connector-npm</artifactId>
+    <packaging>jar</packaging>
 
-  <name>connector-npm</name>
-  <description>SourceConnector implementation paging npm's public _changes feed from a stored cursor. Hand-written, see CLAUDE.md.</description>
+    <name>connector-npm</name>
+    <description>SourceConnector implementation paging npm's public _changes feed from a stored cursor. Hand-written,
+        see CLAUDE.md.
+    </description>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.searchplatform</groupId>
-      <artifactId>connector-api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>com.searchplatform</groupId>
+            <artifactId>connector-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>7.1.0-M1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 </project>
