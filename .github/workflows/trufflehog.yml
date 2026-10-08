@@ -1,0 +1,28 @@
+name: "TruffleHog"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: "30 4 * * 1"
+
+jobs:
+  scan:
+    name: Scan for secrets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Scans the full history on scheduled runs and the commits in the push/PR otherwise.
+      # --results=verified,unknown fails on live credentials and on matches it couldn't verify.
+      - name: TruffleHog
+        uses: trufflesecurity/trufflehog@v3.99.2
+        with:
+          extra_args: --results=verified,unknown

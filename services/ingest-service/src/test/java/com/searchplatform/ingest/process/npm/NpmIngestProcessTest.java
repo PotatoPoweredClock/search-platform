@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -112,6 +113,7 @@ class NpmIngestProcessTest {
 
     @Test
     void usesTheDefaultCursorWhenNoneIsStored() {
+        when(cursorService.getCursorForSource(CURSOR_SOURCE)).thenReturn(Optional.empty());
         givenPage(page("200"));
         process.start();
 
@@ -126,7 +128,7 @@ class NpmIngestProcessTest {
         Cursor stored = new Cursor();
         stored.setSource(CURSOR_SOURCE);
         stored.setCursorValue("777");
-        when(cursorService.getCursorForSource(CURSOR_SOURCE)).thenReturn(stored);
+        when(cursorService.getCursorForSource(CURSOR_SOURCE)).thenReturn(Optional.of(stored));
         givenPage(page("800"));
         process.start();
 

@@ -1,7 +1,9 @@
 package com.searchplatform.ingest.domain.cursor;
 
-import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,9 +13,6 @@ import lombok.Setter;
 @Table(name = "cursor_storage")
 public class Cursor {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(unique = true, nullable = false)
     private String source;
     @Column(nullable = false)
     private String cursorValue;

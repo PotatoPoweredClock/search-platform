@@ -25,6 +25,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 
 @Component
@@ -140,11 +141,8 @@ public class NpmIngestProcess {
     }
 
     private ConnectorCursor getCursor() {
-        Cursor dbCursor = cursorService.getCursorForSource(CURSOR_SOURCE);
-        if (dbCursor == null) {
-            return new ConnectorCursor(DEFAULT_CURSOR_VALUE);
-        }
-        return new ConnectorCursor(dbCursor.getCursorValue());
+        Optional<Cursor> dbCursor = cursorService.getCursorForSource(CURSOR_SOURCE);
+        return dbCursor.isEmpty() ? new ConnectorCursor(DEFAULT_CURSOR_VALUE) : new ConnectorCursor(dbCursor.get().getCursorValue());
     }
 
     private void updateCursor(String newCursorValue) {
