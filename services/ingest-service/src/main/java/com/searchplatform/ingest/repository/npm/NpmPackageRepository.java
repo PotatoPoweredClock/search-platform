@@ -16,7 +16,6 @@ public interface NpmPackageRepository extends JpaRepository<NpmPackage, String>,
     @Transactional
     @Query(value = """
             UPDATE npm_package SET deleted = TRUE WHERE package_id IN :packageIds
-            
             """, nativeQuery = true)
     public int markDeleted(List<String> packageIds);
 

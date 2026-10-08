@@ -62,7 +62,6 @@ public class NpmElasticSearchSyncService {
     public void removeNpmPackages(List<String> npmPackagesToRemove) {
         if (npmPackagesToRemove == null || npmPackagesToRemove.isEmpty()) return;
 
-
         try {
             List<BulkOperation> operations = npmPackagesToRemove.stream()
                     .map(id -> BulkOperation.of(b -> b.delete(d -> d.id(id))))
@@ -83,7 +82,6 @@ public class NpmElasticSearchSyncService {
             LOG.error("Failed to remove packages: ", e);
             throw new ElasticSearchSyncRequestException("Error with sync request", e);
         }
-
     }
 
     private NpmPackageDocument toDocument(NpmPackage toMap) {
@@ -97,5 +95,4 @@ public class NpmElasticSearchSyncService {
                 toMap.getDatePackageModified(),
                 toMap.getDateLatestVersionModified());
     }
-
 }

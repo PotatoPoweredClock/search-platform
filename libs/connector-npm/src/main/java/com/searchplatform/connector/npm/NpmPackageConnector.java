@@ -40,7 +40,6 @@ public class NpmPackageConnector implements Connector {
 
     @Override
     public ChangeEventPage getChangePage(ConnectorCursor cursor, int limit) {
-        //TODO: dedupe updates
         if (cursor == null
                 || cursor.cursorValue() == null
                 || cursor.cursorValue().isEmpty()

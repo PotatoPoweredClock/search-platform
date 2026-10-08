@@ -13,7 +13,6 @@ import java.util.List;
 public class NpmPackageService {
     private final NpmPackageRepository repository;
 
-
     public List<NpmPackage> syncUpdatedDeletedPackagesFromIngest(List<NpmPackage> packages) {
         if (packages == null || packages.isEmpty()) return new ArrayList<>();
 

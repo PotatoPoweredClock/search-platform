@@ -2,6 +2,7 @@ package com.searchplatform.ingest.service.cursor;
 
 import com.searchplatform.ingest.domain.cursor.Cursor;
 import com.searchplatform.ingest.repository.cursor.CursorRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,18 +11,25 @@ import org.springframework.stereotype.Service;
 public class CursorService {
     private final CursorRepository cursorRepository;
 
-
     public Cursor getCursorForSource(String source) {
-        return cursorRepository.findFirstBySource(source);
+        return cursorRepository.getReferenceById(source);
     }
 
-    public Cursor updateOrCreateCursor(String source, String cursorValue) {
-        Cursor cursor = cursorRepository.findFirstBySource(source);
+    //TODO: change to upsert
+    public void updateOrCreateCursor(String source, String cursorValue) {
+        Cursor cursor = null;
+        try {
+            cursor = cursorRepository.getReferenceById(source);
+        } catch (EntityNotFoundException e) {
+            // do nothing.
+        }
+
         if (cursor == null) {
             cursor = new Cursor();
             cursor.setSource(source);
         }
         cursor.setCursorValue(cursorValue);
-        return cursorRepository.save(cursor);
+        cursorRepository.save(cursor);
+        return;
     }
 }

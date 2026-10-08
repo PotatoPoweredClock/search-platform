@@ -2,8 +2,11 @@ package com.searchplatform.ingest.domain.cursor;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "cursor_storage")
 public class Cursor {
