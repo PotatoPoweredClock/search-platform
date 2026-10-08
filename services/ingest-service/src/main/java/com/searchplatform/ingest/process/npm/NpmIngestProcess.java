@@ -30,6 +30,7 @@ import java.util.concurrent.ScheduledFuture;
 @Component
 public class NpmIngestProcess {
     private static final long DEFAULT_DELAY_MILS = 1000;
+    private static final int MAX_DELAY_MULTIPLIER = 120;
     private static final int DEFAULT_LIMIT = 10;
     private static final String DEFAULT_CURSOR_VALUE = "133509727";
     private static final String CURSOR_SOURCE = "NpmPackageIngest";
@@ -109,10 +110,15 @@ public class NpmIngestProcess {
             updateCursor(changes.cursor().cursorValue());
             delayMultiplier = 1; //If we have a success, reset the delay multiplier to 1
             LOG.info("SUCCESS SYNCING PACKAGES");
-        } catch (Exception e) { //TODO: expand for specific exceptions
-            delayMultiplier ++;
+        } catch (Exception e) { //TODO: expand for specific exceptions and better handling
+            increaseDelayMultiplier();
+            LOG.error("Ingest process failed. waiting for {} ms before retrying",DEFAULT_DELAY_MILS * delayMultiplier,e);
         }
         this.schedule(Duration.ofMillis(DEFAULT_DELAY_MILS * delayMultiplier));
+    }
+
+    private void increaseDelayMultiplier(){
+        delayMultiplier = Math.min(delayMultiplier * 2, MAX_DELAY_MULTIPLIER);
     }
 
     private NpmPackage mapToPackageDomainObject(NpmPackageEventChangeContent toMap) {
