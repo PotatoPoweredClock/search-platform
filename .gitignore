@@ -37,4 +37,5 @@ infra/**/.terraform.lock.hcl
 .drills/
 
 # Personal milestone checklists
+docs/checklists/
 *checklist*.md
