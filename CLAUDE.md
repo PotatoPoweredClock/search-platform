@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 A package search platform in Java: npm's public change feed into Postgres, through Kafka into Elasticsearch, served by
-Spring Boot services and a React UI, deployed locally to Kubernetes. Data sources plug in behind a `SourceConnector`
+Spring Boot services and a React UI, deployed locally to Kubernetes. Data sources plug in behind a `Connector`
 interface. The full plan is in `docs/plan.md`.
 
 ## How we work (read this first)
@@ -47,7 +47,7 @@ Java throughout for backend code. No Kotlin modules.
 - Unit tests only: `./mvnw test`
 - Integration tests (`*IT`) need Docker running and only run in `verify`, never in `test`. One IT:
   `./mvnw -pl services/ingest-service verify -Dit.test=NpmElasticSearchSyncServiceIT -Dtest=NoSuchTest -Dsurefire.failIfNoSpecifiedTests=false`
-- Run one service: `./mvnw -pl services/search-api spring-boot:run`
+- Run one service: `./mvnw -pl services/ingest-service spring-boot:run` (`search-api` starts but has no endpoint yet)
 - Local infrastructure: `docker compose up -d`
 - Observability stack (when needed): `docker compose --profile obs up -d`
 
@@ -64,7 +64,8 @@ import the ones it depends on too (the ES client needs `ElasticsearchRestClientA
 
 - **24 GB MacBook Air.** Never run the compose stack and the kind cluster at the same time. Elasticsearch heap 1 GB,
   Kafka heap 512 MB.
-- **Index a subset of npm:** a few thousand packages in M0, up to roughly 100K later.
+- **Index a subset of npm:** the M0 hard cap was dropped, so ingest runs until the feed is exhausted. Stop it when the
+  index is big enough; aim for up to roughly 100K packages.
 - **Local only, no cloud spend.**
 - **Public repo:** never commit secrets, tokens or `.env` files. Use `.env.example` for documented variables.
 
@@ -73,8 +74,8 @@ import the ones it depends on too (the ES client needs `ElasticsearchRestClientA
 - Structured JSON logs (Spring Boot structured logging). Never log tokens, API keys or `Authorization` headers.
 - Unit tests are `*Test` (Surefire); integration tests are `*IT` (Failsafe) and use Testcontainers against real
   Postgres, Kafka and Elasticsearch.
-- Outbox and cursor persistence use `JdbcClient` with hand-written SQL.
-- Records for DTOs and events; a sealed `ChangeEvent` hierarchy.
+- Hand-written SQL for cursor persistence (a Spring Data native `@Query` today) and for the outbox when it arrives.
+- Records for DTOs and events. `ChangeEvent` is a plain class for now.
 - Error responses use `ProblemDetail`.
 
 ## Current milestone

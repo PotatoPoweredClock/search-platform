@@ -117,10 +117,10 @@ This is the diagram from [docs/plan.md](docs/plan.md). Everything past `ingest-s
 
 | Module                                               | State                                                                                                        |
 |------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| [libs/core-model](libs/core-model)                   | Done for M0: sealed `ChangeEvent` types, `ConnectorCursor`, `NpmPackageDocument`.                            |
+| [libs/core-model](libs/core-model)                   | `ChangeEvent` and `ChangeSourceContent` (plain classes), plus the `ConnectorCursor`, `ChangeEventPage` and `NpmPackageDocument` records. No unit tests yet.                            |
 | [libs/connector-api](libs/connector-api)             | Done for M0: the `Connector` seam that data sources plug in behind.                                          |
 | [libs/connector-npm](libs/connector-npm)             | Done for M0: npm `_changes` paging and package metadata fetch, with unit tests.                              |
-| [services/ingest-service](services/ingest-service)   | Working: ingest loop with backoff, cursor persistence, Flyway schema, ES index creation and sync. Port 8081. |
+| [services/ingest-service](services/ingest-service)   | Ingest loop with backoff, cursor persistence, Flyway schema, ES index creation and sync. Port 8081. Run live against the npm feed into Postgres and Elasticsearch. |
 | [services/search-api](services/search-api)           | Skeleton only: the Spring Boot app and config, no endpoint yet. Port 8080.                                   |
 | [services/indexer-service](services/indexer-service) | Skeleton only: unused until Kafka arrives in M2.                                                             |
 
@@ -135,11 +135,9 @@ Other pieces in place:
 
 ### Still open for M0
 
-Tracked in [docs/m0-remaining-checklist.md](docs/m0-remaining-checklist.md):
-
 - `GET /search?q=` in `search-api` (query building, DTO, `ProblemDetail` errors, tests)
 - one end-to-end round-trip `*IT`: canned feed, Postgres, Elasticsearch, search
-- a live run against the real npm feed
+- searching live-ingested data through `search-api` (needs the endpoint above)
 - core-model unit tests, a green CI run, then making the repo public
 
 ## License
