@@ -18,7 +18,10 @@ import org.springframework.web.client.RestClientException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class NpmPackageConnector implements Connector {
     private static final String CHANGE_URL = "https://replicate.npmjs.com/_changes";

@@ -17,10 +17,6 @@
   <name>search-api</name>
   <description>Spring MVC search endpoint on virtual threads, backed by Elasticsearch.</description>
 
-  <properties>
-    <elasticsearch-java.version>9.5.4</elasticsearch-java.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.searchplatform</groupId>
@@ -37,9 +33,8 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     <dependency>
-      <groupId>co.elastic.clients</groupId>
-      <artifactId>elasticsearch-java</artifactId>
-      <version>${elasticsearch-java.version}</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
     </dependency>
 
     <dependency>

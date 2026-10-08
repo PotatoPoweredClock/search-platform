@@ -1,7 +1,6 @@
 package com.searchplatform.ingest.repository.npm;
 
 import com.searchplatform.ingest.domain.npm.NpmPackage;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;

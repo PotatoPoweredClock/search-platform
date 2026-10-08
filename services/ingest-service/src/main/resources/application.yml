@@ -1,4 +1,6 @@
 spring:
+  elasticsearch:
+    uris: http://localhost:9200
   application:
     name: ingest-service
   threads:
@@ -15,6 +17,9 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+elasticsearch:
+  index: npm-packages
 
 server:
   port: 8081

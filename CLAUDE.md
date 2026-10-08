@@ -20,7 +20,6 @@ In those areas: review with specific file and line references, explain the why, 
 Maven POMs and module skeletons, `compose.yaml`, GitHub Actions, Helm, Argo CD, Terraform, the React UI, Cypress tests, Grafana dashboards, config boilerplate. Keep it minimal, explain what you generated and why, and flag anything you're unsure of.
 
 **Habits:**
-- When AI-generated code needed correcting, add a few lines to `docs/ai-log.md`: what was generated, what was wrong, how it was caught.
 - Real decisions get an ADR in `docs/adr/NNNN-title.md`: context, options, decision, consequences. You can draft the skeleton and options; I write the decision.
 - Once per milestone, when I ask, plant a bug on a branch named `drill/<milestone>` without telling me where. Put the answer in `.drills/` (gitignored). Later the drills become the triage agent's eval set.
 
@@ -34,11 +33,16 @@ Java throughout for backend code. No Kotlin modules.
 
 - Build and test everything: `./mvnw verify`
 - Unit tests only: `./mvnw test`
+- Integration tests (`*IT`) need Docker running and only run in `verify`, never in `test`. One IT: `./mvnw -pl services/ingest-service verify -Dit.test=NpmElasticSearchSyncServiceIT -Dtest=NoSuchTest -Dsurefire.failIfNoSpecifiedTests=false`
 - Run one service: `./mvnw -pl services/search-api spring-boot:run`
 - Local infrastructure: `docker compose up -d`
 - Observability stack (when needed): `docker compose --profile obs up -d`
 
 (Update this list as modules and profiles appear.)
+
+## Boot 4 and Jackson 3
+
+Spring Boot 4 moved auto-configurations into new packages (for example `org.springframework.boot.elasticsearch.autoconfigure`, `org.springframework.boot.jackson.autoconfigure`) and Jackson 3 lives under `tools.jackson`. Don't write Boot 3 era imports. Check the jar before importing an auto-configuration, and import the ones it depends on too (the ES client needs `ElasticsearchRestClientAutoConfiguration`).
 
 ## Constraints
 

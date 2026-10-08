@@ -5,6 +5,7 @@ import com.searchplatform.connector.npm.NpmPackageEventChangeContent;
 import com.searchplatform.ingest.domain.cursor.Cursor;
 import com.searchplatform.ingest.domain.npm.NpmPackage;
 import com.searchplatform.ingest.service.cursor.CursorService;
+import com.searchplatform.ingest.service.npm.NpmElasticSearchSyncService;
 import com.searchplatform.ingest.service.npm.NpmPackageService;
 import com.searchplatform.model.connector.ConnectorCursor;
 import com.searchplatform.model.event.change.ChangeEvent;
@@ -35,11 +36,11 @@ public class NpmIngestProcess {
     private static final Logger LOG = LoggerFactory.getLogger(NpmIngestProcess.class);
     private static final OffsetDateTime DEFAULT_TIME_FOR_PACKAGE_MAPPING = OffsetDateTime.ofInstant(Instant.EPOCH, ZoneId.of("UTC"));
 
-
     private final TaskScheduler scheduler;
     private final Connector connector;
     private final CursorService cursorService;
     private final NpmPackageService npmPackageService;
+    private final NpmElasticSearchSyncService npmElasticSearchSyncService;
 
     private volatile boolean running;
     private volatile ScheduledFuture<?> next;
@@ -49,11 +50,13 @@ public class NpmIngestProcess {
             @Qualifier("npmPackageConnector") Connector npmPackageConnector,
             @Qualifier("npmIngestScheduler") TaskScheduler npmIngestScheduler,
             CursorService cursorService,
-            NpmPackageService npmPackageService) {
+            NpmPackageService npmPackageService,
+            NpmElasticSearchSyncService npmElasticSearchSyncService) {
         this.connector = npmPackageConnector;
         this.scheduler = npmIngestScheduler;
         this.cursorService = cursorService;
         this.npmPackageService = npmPackageService;
+        this.npmElasticSearchSyncService = npmElasticSearchSyncService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -95,17 +98,17 @@ public class NpmIngestProcess {
             }
 
             //update database
-            npmPackageService.syncUpdatedDeletedPackagesFromIngest(packagesToUpdate);
+            List<NpmPackage> updatedPackages = npmPackageService.syncUpdatedDeletedPackagesFromIngest(packagesToUpdate);
             npmPackageService.syncDeletedPackagesFromIngest(packageIdsToMarkDelete);
 
-            // get cursor from table
-            // get events from connector
-            // update packages in table
-            // update packages in elastic search
+            //sync with ElasticSearch
+            npmElasticSearchSyncService.updateNpmPackages(updatedPackages);
+            npmElasticSearchSyncService.removeNpmPackages(packageIdsToMarkDelete);
 
             // update cursor in table
             updateCursor(changes.cursor().cursorValue());
-            delayMultiplier = 1; //If we have a success reset the delay multiplier to 1
+            delayMultiplier = 1; //If we have a success, reset the delay multiplier to 1
+            LOG.info("SUCCESS SYNCING PACKAGES");
         } catch (Exception e) { //TODO: expand for specific exceptions
             delayMultiplier ++;
         }
