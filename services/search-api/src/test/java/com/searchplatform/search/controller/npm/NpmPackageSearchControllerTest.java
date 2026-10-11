@@ -26,6 +26,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(NpmPackageSearchController.class)
 public class NpmPackageSearchControllerTest {
     private static final String BASE_PATH = "/api/v1/npm/packages";
+    private static final String QUERY = "someQuery";
+    private static final String QUERY_PARAM = "query";
+    private static final String PAGE_PARAM = "page";
+    private static final String PAGE_SIZE_PARAM = "pageSize";
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,73 +53,68 @@ public class NpmPackageSearchControllerTest {
 
     @Test
     public void getSearchRequestWithoutResults() throws Exception {
-        String query = "someQuery";
         SearchServiceResponse<NpmPackageSearchResponse> response = new SearchServiceResponse<>(new ArrayList<>(), 0);
 
-        when(npmSearchService.query(eq(query), eq(1), eq(20))).thenReturn(response);
+        when(npmSearchService.query(eq(QUERY), anyInt(), anyInt())).thenReturn(response);
 
-        mockMvc.perform(get(BASE_PATH).param("query", query))
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(response)));
 
-        verify(npmSearchService).query(query, 1, 20);
+        verify(npmSearchService).query(eq(QUERY), anyInt(), anyInt());
     }
 
     @Test
     public void getSearchRequestUsesDefaultValues() throws Exception {
-        String query = "someQuery";
         SearchServiceResponse<NpmPackageSearchResponse> response = new SearchServiceResponse<>(new ArrayList<>(), 0);
 
-        when(npmSearchService.query(eq(query), eq(1), eq(20))).thenReturn(response);
+        when(npmSearchService.query(eq(QUERY), eq(1), eq(20))).thenReturn(response);
 
-        mockMvc.perform(get(BASE_PATH).param("query", query))
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(response)));
 
-        verify(npmSearchService).query(query, 1, 20);
+        verify(npmSearchService).query(QUERY, 1, 20);
     }
 
     @Test
     public void getSearchRequestUsesPassedValues() throws Exception {
-        String query = "someQuery";
         SearchServiceResponse<NpmPackageSearchResponse> response = new SearchServiceResponse<>(new ArrayList<>(), 0);
 
-        when(npmSearchService.query(eq(query), eq(5), eq(5))).thenReturn(response);
+        when(npmSearchService.query(eq(QUERY), eq(5), eq(5))).thenReturn(response);
 
-        mockMvc.perform(get(BASE_PATH).param("query", query).param("page","5").param("pageSize", "5"))
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY).param(PAGE_PARAM,"5").param(PAGE_SIZE_PARAM, "5"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(response)));
 
-        verify(npmSearchService).query(query, 5, 5);
+        verify(npmSearchService).query(QUERY, 5, 5);
     }
 
     @Test
     public void getSearchRequestTrimsQuery() throws Exception {
-        String query = "   someQuery   ";
-        String trimmedQuery = "someQuery";
+        String query = "   " + QUERY + "   ";
         SearchServiceResponse<NpmPackageSearchResponse> response = new SearchServiceResponse<>(new ArrayList<>(), 0);
 
-        when(npmSearchService.query(eq(trimmedQuery), eq(5), eq(5))).thenReturn(response);
+        when(npmSearchService.query(eq(QUERY), eq(5), eq(5))).thenReturn(response);
 
-        mockMvc.perform(get(BASE_PATH).param("query", query).param("page","5").param("pageSize", "5"))
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, query).param(PAGE_PARAM,"5").param(PAGE_SIZE_PARAM, "5"))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(response)));
 
-        verify(npmSearchService).query(trimmedQuery, 5, 5);
+        verify(npmSearchService).query(QUERY, 5, 5);
     }
 
     @Test
     public void getSearchRequestWithResults() throws Exception {
-        String query = "someQuery";
         SearchServiceResponse<NpmPackageSearchResponse> response = new SearchServiceResponse<>(List.of(new SearchServiceResponseItem<>("testId", mockSearchDocument, null)), 1);
 
-        when(npmSearchService.query(eq(query), eq(1), eq(20))).thenReturn(response);
+        when(npmSearchService.query(eq(QUERY), eq(1), eq(20))).thenReturn(response);
 
-        mockMvc.perform(get(BASE_PATH).param("query", query))
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY))
                 .andExpect(status().isOk())
                 .andExpect(content().json(mapper.writeValueAsString(response)));
 
-        verify(npmSearchService).query(query, 1, 20);
+        verify(npmSearchService).query(QUERY, 1, 20);
     }
 
     @Test
@@ -128,47 +127,47 @@ public class NpmPackageSearchControllerTest {
 
     @Test
     public void getSearchRequestErrorWithQueryBelowMinValue() throws Exception {
-        mockMvc.perform(get(BASE_PATH).param("query","a"))
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM,"a"))
                 .andExpect(status().isBadRequest());
 
         verify(npmSearchService, never()).query(any(), anyInt(), anyInt());
     }
 
     @Test
-    public void getSearchRequestErrorWithQueryToLarge() throws Exception {
-        mockMvc.perform(get(BASE_PATH).param("query","a".repeat(101)))
+    public void getSearchRequestErrorWithQueryTooLarge() throws Exception {
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM,"a".repeat(101)))
                 .andExpect(status().isBadRequest());
 
         verify(npmSearchService, never()).query(any(), anyInt(), anyInt());
     }
 
     @Test
-    public void getSearchRequestErrorWithPageToSmall() throws Exception {
-        mockMvc.perform(get(BASE_PATH).param("query","query").param("page","0"))
+    public void getSearchRequestErrorWithPageTooSmall() throws Exception {
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY).param(PAGE_PARAM,"0"))
                 .andExpect(status().isBadRequest());
 
         verify(npmSearchService, never()).query(any(), anyInt(), anyInt());
     }
 
     @Test
-    public void getSearchRequestErrorWithPageToBig() throws Exception {
-        mockMvc.perform(get(BASE_PATH).param("query","query").param("page","10001"))
+    public void getSearchRequestErrorWithPageTooBig() throws Exception {
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY).param(PAGE_PARAM,"10001"))
                 .andExpect(status().isBadRequest());
 
         verify(npmSearchService, never()).query(any(), anyInt(), anyInt());
     }
 
     @Test
-    public void getSearchRequestErrorWithSPageSizeToSmall() throws Exception {
-        mockMvc.perform(get(BASE_PATH).param("query","query").param("pageSize","0"))
+    public void getSearchRequestErrorWithPageSizeTooSmall() throws Exception {
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY).param(PAGE_SIZE_PARAM,"0"))
                 .andExpect(status().isBadRequest());
 
         verify(npmSearchService, never()).query(any(), anyInt(), anyInt());
     }
 
     @Test
-    public void getSearchRequestErrorWithPageSizeToBig() throws Exception {
-        mockMvc.perform(get(BASE_PATH).param("query","query").param("pageSize","101"))
+    public void getSearchRequestErrorWithPageSizeTooBig() throws Exception {
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY).param(PAGE_SIZE_PARAM,"101"))
                 .andExpect(status().isBadRequest());
 
         verify(npmSearchService, never()).query(any(), anyInt(), anyInt());
@@ -176,7 +175,7 @@ public class NpmPackageSearchControllerTest {
 
     @Test
     public void getSearchRequestErrorOverMaxResultsWindow() throws Exception {
-        mockMvc.perform(get(BASE_PATH).param("query","query").param("pageSize","2").param("page","5001"))
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, QUERY).param(PAGE_SIZE_PARAM,"2").param(PAGE_PARAM,"5001"))
                 .andExpect(status().isBadRequest());
 
         verify(npmSearchService, never()).query(any(), anyInt(), anyInt());

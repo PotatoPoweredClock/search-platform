@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-
 public class NpmSearchService {
     private static final Logger LOG = LoggerFactory.getLogger(NpmSearchService.class);
 
