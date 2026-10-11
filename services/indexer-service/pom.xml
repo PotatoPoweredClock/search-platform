@@ -18,7 +18,7 @@
     <description>Indexes into Elasticsearch (direct in M0, bulk from a Kafka consumer from M2).</description>
 
     <properties>
-        <elasticsearch-java.version>9.5.4</elasticsearch-java.version>
+        <elasticsearch-java.version>9.5.5</elasticsearch-java.version>
     </properties>
 
     <dependencies>
