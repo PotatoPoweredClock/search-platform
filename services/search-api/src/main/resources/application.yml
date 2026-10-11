@@ -6,6 +6,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  jackson:
+    default-property-inclusion: non_null # omit null fields from JSON responses
+  mvc:
+    problemdetails:
+      enabled: true # framework errors (400, 404, 405...) come back as ProblemDetail
 
 server:
   port: 8080

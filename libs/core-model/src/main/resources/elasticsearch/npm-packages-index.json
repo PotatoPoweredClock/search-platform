@@ -18,7 +18,12 @@
         "type": "text"
       },
       "keywords": {
-        "type": "keyword"
+        "type": "keyword",
+        "fields": {
+          "text": {
+            "type": "text"
+          }
+        }
       },
       "latestVersion": {
         "type": "keyword"
