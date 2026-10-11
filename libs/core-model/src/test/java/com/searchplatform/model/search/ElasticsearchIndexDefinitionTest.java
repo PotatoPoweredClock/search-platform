@@ -1,8 +1,6 @@
-package com.searchplatform.ingest.config;
+package com.searchplatform.model.search;
 
-import com.searchplatform.model.search.NpmPackageDocument;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -24,7 +22,7 @@ class ElasticsearchIndexDefinitionTest {
     @Test
     void mappingPropertiesMatchTheDocumentRecordExactly() throws IOException {
         JsonNode definition;
-        try (InputStream in = new ClassPathResource("elasticsearch/npm-packages-index.json").getInputStream()) {
+        try (InputStream in = NpmPackageDocument.class.getResourceAsStream("/elasticsearch/npm-packages-index.json")) {
             definition = JsonMapper.builder().build().readTree(in);
         }
 
