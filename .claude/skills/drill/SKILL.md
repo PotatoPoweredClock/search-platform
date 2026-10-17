@@ -30,7 +30,7 @@ You're about to create a branch and commit to it. Run `git status` first.
 
 ## Step 1: Resolve the milestone
 
-Use the milestone the user names (e.g. `/drill m1` → `M1`). If they just say "plant a drill" with no milestone, read the
+Use the milestone the user names (e.g. `/drill m1a` → `M1a`). If they just say "plant a drill" with no milestone, read the
 `## Current milestone` section of `CLAUDE.md` and use that one. If it's genuinely ambiguous (e.g. they name a milestone
 that isn't the current one, or CLAUDE.md's current milestone is unclear), ask — don't guess at something this
 consequential.
@@ -38,9 +38,9 @@ consequential.
 ## Step 2: Confirm there's real code to break
 
 CLAUDE.md's "hand-written by me" list is the target zone: `libs/core-model`, `libs/connector-api`, `libs/connector-*`,
-the concurrent fetcher, outbox relay, Kafka consumers, bulk indexer, reindexing, query building, Spring Security config,
-custom metrics/tracing, the RAG pipeline and `agents/agent-core`. Look at what actually exists in those paths for the
-milestone in question.
+the rate-limited source clients and ingest workers, outbox relay, Kafka consumers, bulk indexer, reindexing, query
+building, the GraphQL schema/resolvers/batch loaders and parity test, Spring Security config, custom metrics/tracing,
+the RAG pipeline and `agents/agent-core`. Look at what actually exists in those paths for the milestone in question.
 
 If it's still just scaffolding (empty modules, skeleton POMs, no real logic) — there's nothing to plant a bug *in*. Say
 so plainly and stop, rather than inventing a bug in generated boilerplate or forcing one in somewhere it doesn't belong.
