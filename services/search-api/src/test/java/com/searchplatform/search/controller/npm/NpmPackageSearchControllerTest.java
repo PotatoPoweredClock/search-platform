@@ -105,6 +105,20 @@ public class NpmPackageSearchControllerTest {
     }
 
     @Test
+    public void getSearchRequestAcceptsQueryAtMinLength() throws Exception {
+        String query = "ab";
+        SearchServiceResponse<NpmPackageSearchResponse> response = new SearchServiceResponse<>(new ArrayList<>(), 0);
+
+        when(npmSearchService.query(eq(query), anyInt(), anyInt())).thenReturn(response);
+
+        mockMvc.perform(get(BASE_PATH).param(QUERY_PARAM, query))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(response)));
+
+        verify(npmSearchService).query(eq(query), anyInt(), anyInt());
+    }
+
+    @Test
     public void getSearchRequestWithResults() throws Exception {
         SearchServiceResponse<NpmPackageSearchResponse> response = new SearchServiceResponse<>(List.of(new SearchServiceResponseItem<>("testId", mockSearchDocument, null)), 1);
 

@@ -1,8 +1,8 @@
 # CLAUDE.md
 
 A package search platform in Java: npm's public change feed into Postgres, through Kafka into Elasticsearch, served by
-Spring Boot services and a React UI, deployed locally to Kubernetes. Data sources plug in behind a `Connector`
-interface. The full plan is in `docs/plan.md`.
+Spring Boot services and a React UI, deployed locally to Kubernetes. Each data source is its own client and ingest
+pipeline, and every source emits the same change events. The full plan is in `docs/plan.md`.
 
 ## How we work (read this first)
 
@@ -12,7 +12,9 @@ questions.
 **Hand-written by me. Don't write or rewrite code here unless I explicitly ask:**
 
 - `libs/core-model`, `libs/connector-api`, `libs/connector-*`
-- the concurrent fetcher, outbox relay, Kafka consumers, bulk indexer, reindexing, query building
+- the rate-limited source clients and ingest workers, outbox relay, Kafka consumers, bulk indexer, reindexing, query
+  building
+- the GraphQL schema, resolvers and batch loaders, and the REST/GraphQL parity test
 - Spring Security configuration, filters and JWT mapping
 - custom metrics, spans and trace propagation
 - the RAG pipeline, `agents/agent-core`, agent tool definitions
@@ -28,15 +30,20 @@ unsure of.
 
 **Habits:**
 
+- When AI-generated code needed correcting, add a few lines to `docs/ai-log.md`: what was generated, what was wrong, how
+  it was caught.
 - Real decisions get an ADR in `docs/adr/NNNN-title.md`: context, options, decision, consequences. You can draft the
   skeleton and options; I write the decision.
+- From M1b on, every new or changed REST read endpoint gets its matching GraphQL field in the same PR, and the parity
+  test (same queries through both, results must match) stays green. Writes stay REST-only.
 - Once per milestone, when I ask, plant a bug on a branch named `drill/<milestone>` without telling me where. Put the
   answer in `.drills/` (gitignored). Later the drills become the triage agent's eval set.
 
 ## Stack
 
-Java 25, Spring Boot 4.1, Maven (use `./mvnw`), PostgreSQL with Flyway, Kafka (KRaft, single broker), Elasticsearch,
-Spring AI 2.0 (from M5), React with TypeScript and Vite, Cypress, kind, Helm, Argo CD, Terraform, Grafana `otel-lgtm`
+Java 25, Spring Boot 4.1, Maven (use `./mvnw`), Spring for GraphQL (read-only API next to REST, from M1b), PostgreSQL
+with Flyway, RabbitMQ (ingest fetch tasks, from M1a), Kafka (KRaft, single broker), Elasticsearch, Spring AI 2.0 (from
+M5), React with TypeScript and Vite, Cypress, kind, Helm, Argo CD, Terraform, Grafana `otel-lgtm`
 (Prometheus, Loki, Tempo).
 
 Java throughout for backend code. No Kotlin modules.
@@ -47,7 +54,7 @@ Java throughout for backend code. No Kotlin modules.
 - Unit tests only: `./mvnw test`
 - Integration tests (`*IT`) need Docker running and only run in `verify`, never in `test`. One IT:
   `./mvnw -pl services/ingest-service verify -Dit.test=NpmElasticSearchSyncServiceIT -Dtest=NoSuchTest -Dsurefire.failIfNoSpecifiedTests=false`
-- Run one service: `./mvnw -pl services/ingest-service spring-boot:run` (`search-api` starts but has no endpoint yet)
+- Run one service: `./mvnw -pl services/ingest-service spring-boot:run` (`search-api` serves `GET /api/v1/npm/packages?query=`)
 - Local infrastructure: `docker compose up -d`
 - Observability stack (when needed): `docker compose --profile obs up -d`
 
@@ -73,13 +80,13 @@ import the ones it depends on too (the ES client needs `ElasticsearchRestClientA
 
 - Structured JSON logs (Spring Boot structured logging). Never log tokens, API keys or `Authorization` headers.
 - Unit tests are `*Test` (Surefire); integration tests are `*IT` (Failsafe) and use Testcontainers against real
-  Postgres, Kafka and Elasticsearch.
+  Postgres, RabbitMQ, Kafka and Elasticsearch.
 - Hand-written SQL for cursor persistence (a Spring Data native `@Query` today) and for the outbox when it arrives.
 - Records for DTOs and events. `ChangeEvent` is a plain class for now.
 - Error responses use `ProblemDetail`.
 
 ## Current milestone
 
-**M0: stand it up.** Done when one search query works end to end (npm feed, Postgres, Elasticsearch, search endpoint),
-one Testcontainers round-trip test passes, CI is green, and the repo is public. Update this section when a milestone
-closes.
+**M1a: ingest.** M0 closed: search works end to end, CI is green and the repo is public. M1a replaces the
+single-process ingest loop with RabbitMQ fetch tasks and rate-limited workers, and carries over the end-to-end round-trip
+test from M0. Done when the M1a scope in `docs/plan.md` is met. Update this section when a milestone closes.

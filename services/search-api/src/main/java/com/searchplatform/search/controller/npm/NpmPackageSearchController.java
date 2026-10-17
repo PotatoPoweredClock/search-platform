@@ -33,7 +33,7 @@ public class NpmPackageSearchController {
             @RequestParam(value = "page", defaultValue = "1") @Min(1) @Max(MAX_RESULT_WINDOW) int page,
             @RequestParam(value = "pageSize", defaultValue = "20") @Min(1) @Max(MAX_PAGE_SIZE) int pageSize) {
         String trimmed = query.trim();
-        if (trimmed.length() <= MIN_QUERY_LENGTH || trimmed.length() > MAX_QUERY_LENGTH) {
+        if (trimmed.length() < MIN_QUERY_LENGTH || trimmed.length() > MAX_QUERY_LENGTH) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Query must be between %d and %d characters.".formatted(MIN_QUERY_LENGTH, MAX_QUERY_LENGTH));
         }
         if (page * pageSize > MAX_RESULT_WINDOW) {
