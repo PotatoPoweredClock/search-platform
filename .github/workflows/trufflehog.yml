@@ -23,6 +23,6 @@ jobs:
       # Scans the full history on scheduled runs and the commits in the push/PR otherwise.
       # --results=verified,unknown fails on live credentials and on matches it couldn't verify.
       - name: TruffleHog
-        uses: trufflesecurity/trufflehog@v3.99.2
+        uses: trufflesecurity/trufflehog@v3.99.3
         with:
           extra_args: --results=verified,unknown
